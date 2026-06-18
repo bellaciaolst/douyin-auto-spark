@@ -1,0 +1,29 @@
+{
+  "name": "douyin-auto-spark",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "GPL-3.0-only",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint -c .oxlintrc.jsonc .",
+    "lint:fix": "oxlint -c .oxlintrc.jsonc --fix .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "playwright": "^1.61.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@10.33.4"
+}
