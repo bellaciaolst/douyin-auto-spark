@@ -1,4 +1,7 @@
-name: 🚀 续一次火
+name: 🚀 续一次火  <-- ❗ 就是这行写错了，把它彻底删掉！
+import 'dotenv/config'
+import { chromium, type Cookie } from 'playwright'
+// ... 后续代码
 
 on:
   workflow_dispatch:
