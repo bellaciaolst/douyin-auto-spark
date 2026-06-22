@@ -17,6 +17,22 @@ jobs:
       - name: 克隆当前仓库 (Clone current repo)
         uses: actions/checkout@v6
 
+      - name: 缓存 Bun 安装
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun
+          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: 缓存依赖
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: deps-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
       - name: 安装 unzip (Install unzip)
         run: apt-get update && apt-get install -y unzip
 
@@ -33,6 +49,3 @@ jobs:
           DOUYIN_COOKIE: ${{ secrets.DOUYIN_COOKIE }}
           DOUYIN_TARGET_NAMES: ${{ secrets.DOUYIN_TARGET_NAMES }}
         run: bun src/main.ts
-
-#      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3
