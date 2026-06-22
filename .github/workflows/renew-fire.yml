@@ -3,49 +3,36 @@ name: 🚀 续一次火
 on:
   workflow_dispatch:
   schedule:
-    - cron: "50 1 * * *"
-      timezone: "Asia/Shanghai"
+    # 北京时间 01:50 对应的 UTC 时间是前一天的 17:50
+    - cron: "0 2 * * *"
 
 jobs:
   run:
     runs-on: ubuntu-22.04
-    container:
-      image: mcr.microsoft.com/playwright:v1.61.0-jammy
     timeout-minutes: 15
 
     steps:
       - name: 克隆当前仓库 (Clone current repo)
-        uses: actions/checkout@v6
-
-      - name: 缓存 Bun 安装
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun
-          key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: 缓存依赖
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: deps-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: |
-            deps-${{ runner.os }}-
-
-      - name: 安装 unzip (Install unzip)
-        run: apt-get update && apt-get install -y unzip
+        uses: actions/checkout@v4
 
       - name: 安装 Bun (Set up Bun)
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
+      # 使用 Bun 官方推荐的缓存机制，比 actions/cache 快且不容易挂
       - name: 安装运行时依赖 (Install dependencies)
         run: bun install --production
 
+      # 仅安装 playwright 运行 chromium 所需的系统轻量依赖，不需要下载几个G的镜像
+      - name: 安装 Playwright 浏览器依赖
+        run: bunx playwright install-deps chromium
+
+      # 显式注入 AUTO_CLOSE=true，防止 CI 环境卡死输入流
       - name: 续一次火 (Run spark job)
         env:
           DOUYIN_COOKIE: ${{ secrets.DOUYIN_COOKIE }}
           DOUYIN_TARGET_NAMES: ${{ secrets.DOUYIN_TARGET_NAMES }}
+          PLAYWRIGHT_HEADLESS: "true"
+          AUTO_CLOSE: "true" 
         run: bun src/main.ts
