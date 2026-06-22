@@ -1,10 +1,8 @@
 import 'dotenv/config'
 import { chromium, type Cookie } from 'playwright'
-import { readFile } from 'node:fs/promises'
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 import type { DouyinCookie, SameSite } from './types/douyin-cookie'
-import type { Yiyan } from './types/yiyan'
 
 const DOUYIN_COOKIE_KEY = 'DOUYIN_COOKIE'
 const DOUYIN_TARGET_NAMES_KEY = 'DOUYIN_TARGET_NAMES'
@@ -18,7 +16,6 @@ async function main(): Promise<void> {
   const autoClose = resolveAutoClose()
   const douyinCookies = resolveDouyinCookies()
   const targetNames = resolveDouyinTargetNames()
-  const yiyans = await resolveYiyans()
   const browser = await chromium.launch({
     headless,
     ...(browserPath ? { executablePath: browserPath } : {}),
@@ -43,7 +40,7 @@ async function main(): Promise<void> {
     const editorInput = page.locator('.messageEditorimChatEditorContainer [data-slate-editor="true"][contenteditable="true"]')
     await editorInput.waitFor({ state: 'visible' })
     await editorInput.click()
-    await page.keyboard.insertText(pickRandomYiyan(yiyans).hitokoto)
+    await page.keyboard.insertText('自动续火花')
     await page.keyboard.press('Enter')
   }
 
@@ -153,27 +150,6 @@ function resolveDouyinTargetNames(): string[] {
   }
 
   return targetNames.map((targetName) => targetName.trim())
-}
-
-/**
- * 解析一言数据列表。
- */
-async function resolveYiyans(): Promise<Yiyan[]> {
-  const yiyanText = await readFile('assets/yiyan.json', 'utf8')
-  const yiyans = JSON.parse(yiyanText) as Yiyan[]
-
-  if (!Array.isArray(yiyans) || yiyans.length === 0) {
-    throw new Error('assets/yiyan.json 必须是非空数组')
-  }
-
-  return yiyans
-}
-
-/**
- * 从一言数据中随机挑选一条。
- */
-function pickRandomYiyan(yiyans: Yiyan[]): Yiyan {
-  return yiyans[Math.floor(Math.random() * yiyans.length)]
 }
 
 /**
