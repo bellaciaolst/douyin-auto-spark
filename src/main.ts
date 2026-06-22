@@ -16,6 +16,7 @@ async function main(): Promise<void> {
   const autoClose = resolveAutoClose()
   const douyinCookies = resolveDouyinCookies()
   const targetNames = resolveDouyinTargetNames()
+  
   const browser = await chromium.launch({
     headless,
     ...(browserPath ? { executablePath: browserPath } : {}),
@@ -29,23 +30,34 @@ async function main(): Promise<void> {
     waitUntil: 'domcontentloaded',
   })
 
+  // 等待页面流式数据加载完毕
   await page.waitForTimeout(10000)
 
   for (const targetName of targetNames) {
+    console.log(`正在寻找联系人: ${targetName}`)
     const target = page.locator('[data-e2e="conversation-item"]').filter({
       has: page.getByText(targetName, { exact: true }),
     })
+    
+    // 确保联系人元素存在再点击
+    await target.waitFor({ state: 'visible', timeout: 5000 })
     await target.click()
 
+    // 定位输入框
     const editorInput = page.locator('.messageEditorimChatEditorContainer [data-slate-editor="true"][contenteditable="true"]')
-    await editorInput.waitFor({ state: 'visible' })
+    await editorInput.waitFor({ state: 'visible', timeout: 5000 })
     await editorInput.click()
+    
+    // 输入并发送消息
     await page.keyboard.insertText('自动续火花')
     await page.keyboard.press('Enter')
+    console.log(`已向 ${targetName} 发送续火消息`)
   }
 
+  // 等待消息发送完毕的缓冲时间
   await page.waitForTimeout(5000)
 
+  // 如果不是自动关闭（通常在本地调试时），则等待用户回车
   if (!autoClose) {
     const readline = createInterface({
       input,
@@ -57,6 +69,7 @@ async function main(): Promise<void> {
   }
 
   await browser.close()
+  console.log('任务结束，浏览器已关闭。')
 }
 
 /**
@@ -95,8 +108,14 @@ function resolveHeadless(): boolean {
 
 /**
  * 解析脚本结束后是否自动关闭浏览器。
+ * 在 GitHub Actions 环境下强制返回 true，防止 CI 卡死。
  */
 function resolveAutoClose(): boolean {
+  // 核心安全保障：如果在 GitHub Actions 环境中，强制自动关闭，不进行命令行交互
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    return true
+  }
+
   const autoClose = process.env.AUTO_CLOSE?.trim().toLowerCase()
 
   if (!autoClose) {
@@ -181,6 +200,7 @@ function toPlaywrightSameSite(sameSite: SameSite | null): Cookie['sameSite'] {
   return 'Lax'
 }
 
+// 启动主函数
 main().catch((error: unknown) => {
   console.error('启动 Chrome 访问抖音聊天页失败:', error)
   process.exitCode = 1
