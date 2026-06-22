@@ -49,7 +49,7 @@ async function main(): Promise<void> {
     await editorInput.click()
     
     // 输入并发送消息
-    await page.keyboard.insertText('自动续火花')
+    await page.keyboard.insertText('自动续火花（10:10定时版测试）')
     await page.keyboard.press('Enter')
     console.log(`已向 ${targetName} 发送续火消息`)
   }
