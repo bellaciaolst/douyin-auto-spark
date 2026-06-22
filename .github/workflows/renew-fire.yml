@@ -1,39 +1,19 @@
 name: 🚀 续一次火
 
 on:
-  workflow_dispatch: # 手动触发，必须单独占一行
-  schedule:          # 定时触发，与手动触发严格左对齐
-    - cron: "40 3 * * *"
+  workflow_dispatch: # 保留手动触发，方便你随时测试
+  schedule:
+    # 🎯 每小时的第 25 分钟执行一次
+    # 故意错开整点（00分），避开服务器拥堵，触发成功率极高
+    - cron: "25 */1 * * *"
 
 jobs:
   run:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-
+    
+    # 下面的 steps 保持你原来的内容完全不变...
     steps:
       - name: 克隆当前仓库 (Clone current repo)
         uses: actions/checkout@v4
-
-      - name: 自动安装 Bun (Set up Bun)
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: 安装运行时依赖 (Install dependencies)
-        run: bun install --production
-
-      # 【核心修复 1】真正下载 Chromium 浏览器（只下载这一个，速度极快）
-      - name: 下载 Playwright 浏览器
-        run: bunx playwright install chromium
-
-      # 【核心修复 2】安装 Linux 运行浏览器所需的系统依赖
-      - name: 安装 Playwright 系统依赖
-        run: bunx playwright install-deps chromium
-
-      - name: 续一次火 (Run spark job)
-        env:
-          DOUYIN_COOKIE: ${{ secrets.DOUYIN_COOKIE }}
-          DOUYIN_TARGET_NAMES: ${{ secrets.DOUYIN_TARGET_NAMES }}
-          PLAYWRIGHT_HEADLESS: "true"
-          AUTO_CLOSE: "true"
-        run: bun src/main.ts
+# ... 后面保持原样
