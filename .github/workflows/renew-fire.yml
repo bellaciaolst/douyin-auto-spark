@@ -1,10 +1,9 @@
 name: 🚀 续一次火
 
 on:
-  workflow_dispatch:
-  schedule:
-    # 北京时间 01:50 (UTC 17:50)
-    - cron: "00 3 * * *"
+  workflow_dispatch: # 手动触发，必须单独占一行
+  schedule:          # 定时触发，与手动触发严格左对齐
+    - cron: "40 3 * * *"
 
 jobs:
   run:
