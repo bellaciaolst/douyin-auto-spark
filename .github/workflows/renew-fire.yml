@@ -3,8 +3,8 @@ name: 🚀 续一次火
 on:
   workflow_dispatch:
   schedule:
-    # 北京时间 01:50 对应的 UTC 时间是前一天的 17:50
-    - cron: "0 2 * * *"
+    # 北京时间 01:50 (UTC 17:50)
+    - cron: "50 17 * * *"
 
 jobs:
   run:
@@ -13,26 +13,28 @@ jobs:
 
     steps:
       - name: 克隆当前仓库 (Clone current repo)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: 安装 Bun (Set up Bun)
+      - name: 自动安装 Bun (Set up Bun)
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      # 使用 Bun 官方推荐的缓存机制，比 actions/cache 快且不容易挂
       - name: 安装运行时依赖 (Install dependencies)
         run: bun install --production
 
-      # 仅安装 playwright 运行 chromium 所需的系统轻量依赖，不需要下载几个G的镜像
-      - name: 安装 Playwright 浏览器依赖
+      # 【核心修复 1】真正下载 Chromium 浏览器（只下载这一个，速度极快）
+      - name: 下载 Playwright 浏览器
+        run: bunx playwright install chromium
+
+      # 【核心修复 2】安装 Linux 运行浏览器所需的系统依赖
+      - name: 安装 Playwright 系统依赖
         run: bunx playwright install-deps chromium
 
-      # 显式注入 AUTO_CLOSE=true，防止 CI 环境卡死输入流
       - name: 续一次火 (Run spark job)
         env:
           DOUYIN_COOKIE: ${{ secrets.DOUYIN_COOKIE }}
           DOUYIN_TARGET_NAMES: ${{ secrets.DOUYIN_TARGET_NAMES }}
           PLAYWRIGHT_HEADLESS: "true"
-          AUTO_CLOSE: "true" 
+          AUTO_CLOSE: "true"
         run: bun src/main.ts
