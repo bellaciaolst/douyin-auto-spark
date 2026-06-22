@@ -3,8 +3,8 @@ name: 🚀 续一次火
 on:
   workflow_dispatch:
   schedule:
-    # 北京时间 01:50 (UTC 17:50)
-    - cron: "10 2 * * *"
+    # 北京时间 10:50 (对应 UTC 时间 02:50)
+    - cron: "50 2 * * *"
 
 jobs:
   run:
@@ -23,14 +23,15 @@ jobs:
       - name: 安装运行时依赖 (Install dependencies)
         run: bun install --production
 
-      # 【核心修复 1】真正下载 Chromium 浏览器（只下载这一个，速度极快）
+      # 真正下载 Chromium 浏览器（只下载这一个，速度极快）
       - name: 下载 Playwright 浏览器
         run: bunx playwright install chromium
 
-      # 【核心修复 2】安装 Linux 运行浏览器所需的系统依赖
+      # 安装 Linux 运行浏览器所需的系统依赖
       - name: 安装 Playwright 系统依赖
         run: bunx playwright install-deps chromium
 
+      # 执行自动化续火脚本
       - name: 续一次火 (Run spark job)
         env:
           DOUYIN_COOKIE: ${{ secrets.DOUYIN_COOKIE }}
@@ -38,3 +39,13 @@ jobs:
           PLAYWRIGHT_HEADLESS: "true"
           AUTO_CLOSE: "true"
         run: bun src/main.ts
+
+      # 【新增优化】无论成功还是失败，都将运行过程中的截图保存下来
+      # 方便在 Actions 页面下载查看（防止因风控、滑块验证码或 Cookie 失效导致抓瞎）
+      - name: 上传自动化调试截图 (Upload Screenshots)
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: douyin-screenshots
+          path: "*.png"
+          retention-days: 3
