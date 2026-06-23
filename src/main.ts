@@ -202,7 +202,7 @@ async function main(): Promise<void> {
 
 
 
-    await page.keyboard.insertText('自动续火花（测试）')
+    await page.keyboard.insertText('每日自动续火花✅')
 
 
 
